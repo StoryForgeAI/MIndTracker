@@ -5,7 +5,7 @@ workflows:
   build-android:
     name: Build Android APK
     max_build_duration: 60
-    instance_type: linux_x2
+    instance_type: linux
     environment:
       flutter: "3.29.0"
       xcode: latest
@@ -31,7 +31,7 @@ workflows:
   build-release:
     name: Build Release Bundle
     max_build_duration: 60
-    instance_type: linux_x2
+    instance_type: linux
     environment:
       flutter: "3.29.0"
       xcode: latest
@@ -46,10 +46,10 @@ workflows:
         script: flutter pub get
       - name: Update Supabase config
         script: |
-          cat > lib/core/config/supabase_config.dart << EOF
+          cat > lib/core/config/supabase_config.dart << 'EOF'
           class SupabaseConfig {
-            static const String url = '\$SUPABASE_URL';
-            static const String anonKey = '\$SUPABASE_ANON_KEY';
+            static const String url = '$SUPABASE_URL';
+            static const String anonKey = '$SUPABASE_ANON_KEY';
             static const String userProfilesTable = 'user_profiles';
             static const String usageLogsTable = 'usage_logs';
             static const String blockedAppsTable = 'blocked_apps';
