@@ -1,0 +1,77 @@
+# codemagic.yaml - Mind Lock Tracker CI/CD
+format_version: "14"
+default_calc_name: "mind-lock-tracker"
+
+workflows:
+  build-android:
+    name: Build Android APK
+    max_build_duration: 60
+    instance_type: linux_x2
+    environment:
+      flutter: "3.29.0"
+      android: true
+      xcode: latest
+    triggering:
+      events:
+        - push
+        - pull_request
+      branch_patterns:
+        - pattern: 'main'
+          include: true
+          source: true
+    scripts:
+      - name: Get Flutter packages
+        script: |
+          flutter pub get
+      
+      - name: Run analyzer
+        script: |
+          flutter analyze
+        ignore_failure: true
+      
+      - name: Build debug APK
+        script: |
+          flutter build apk --debug
+        artifacts:
+          - build/app/outputs/flutter-apk/app-debug.apk
+      
+      - name: Build release APK
+        script: |
+          flutter build apk --release
+        artifacts:
+          - build/app/outputs/flutter-apk/app-release.apk
+
+  build-release:
+    name: Build Release Bundle
+    max_build_duration: 60
+    instance_type: linux_x2
+    environment:
+      flutter: "3.29.0"
+      android: true
+      vars:
+        SUPABASE_URL: Encrypted(SUPABASE_URL)
+        SUPABASE_ANON_KEY: Encrypted(SUPABASE_ANON_KEY)
+    triggering:
+      events:
+        - tag
+    scripts:
+      - name: Get Flutter packages
+        script: |
+          flutter pub get
+      
+      - name: Update Supabase config
+        script: |
+          echo "class SupabaseConfig {
+            static const String url = '$SUPABASE_URL';
+            static const String anonKey = '$SUPABASE_ANON_KEY';
+            static const String userProfilesTable = 'user_profiles';
+            static const String usageLogsTable = 'usage_logs';
+            static const String blockedAppsTable = 'blocked_apps';
+            static const String sessionStatsTable = 'session_stats';
+          }" > lib/core/config/supabase_config.dart
+      
+      - name: Build app bundle
+        script: |
+          flutter build appbundle --release
+        artifacts:
+          - build/app/outputs/bundle/release/app-release.aab
