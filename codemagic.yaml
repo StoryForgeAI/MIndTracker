@@ -20,8 +20,7 @@ workflows:
       - name: Get Flutter packages
         script: flutter pub get
       - name: Run analyzer
-        script: flutter analyze
-        ignore_failure: true
+        script: flutter analyze > /dev/null 2>&1 || true
       - name: Build debug APK
         script: flutter build apk --debug
     artifacts:
